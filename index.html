@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title></title>
+    <script type="text/javascript">
+    	
+   	window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB ||window.msIndexedDB ;
+   	window.IDBCursor = window.IDBCursor || window.webkitIDBCursor || window.msIDBCursor ;
+   	window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction ;
+   	window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange ;
+   			
+   			var dbName = "myDBtest";
+   			
+   			var idb ;
+   			
+   		function connectDB(){
+   			var dbVersion = 1 ;
+   			var dbConnect = indexedDB.open(dbName,dbVersion);
+   			dbConnect.onsuccess = function(e){
+   				idb = e.target.result ;
+   				alert("success")
+   			}
+   			dbConnect.onerror = function(e){
+   				alert("error")
+   			}
+   			dbConnect.onupgradeneeded = function(e){
+   				idb = e.target.result ;
+   				var tx = e.target.transaction ;
+   				var oldVersion = e.oldVersion ;
+   				var newVersion = e.newVersion ;
+   				alert("update ok");
+   			}
+   		}
+   		function updateDB(){
+   			var dbVersion = 3 ;
+   			var dbConnect = indexedDB.open(dbName,dbVersion);
+   			dbConnect.onsuccess = function(e){
+   				idb = e.target.result ;
+   				alert("success")
+   			}
+   			dbConnect.onerror = function(e){
+   				alert("error")
+   			}
+   			dbConnect.onupgradeneeded = function(e){
+   				idb = e.target.result ;
+   				var tx = e.target.transaction ;
+   				var oldVersion = e.oldVersion ;
+   				var newVersion = e.newVersion ;
+   				alert("update ok");
+   			}
+   		}
+   		function creatStore(){
+   			var dbVersion = 4 ;
+   			var dbConnect = indexedDB.open(dbName,dbVersion);
+   			dbConnect.onsuccess = function(e){
+   				idb = e.target.result ;
+   				alert("succeed");
+   			}
+   			dbConnect.onerror = function(e){
+   				alert("error");
+   			}
+   			dbConnect.onupgradeneeded = function(e){
+   				idb  = e.target.result ;
+   				var sname = "user" ;
+   				var optionParm = {
+   					keyPath:"userId",
+   					autoIncrement:false
+   				}
+   				var store = idb.createObjectStore(sname,optionParm);
+   				alert("创建数据表成功！")
+   			}
+   		}
+   		
+    </script>
+</head>
+<body>
+	<input type="button" value="链接数据库" onclick="connectDB()"/>
+	<input type="button" value="更新数据库" onclick="updateDB()"/>
+	<input type="button" value="创建数据表" onclick="creatStore()"/>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="dB.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<style type="text/css">
+		fieldset{
+			width:300px;
+			margin-top: 20px;
+		}
+		table,tr,td,th{
+			    border-collapse:collapse;
+		}
+		th,td{
+			width:120px;
+			height:30px;
+			line-height: 30px;
+			text-align: center;
+			border: 1px solid #ccc;
+			padding: 0;
+			margin:0;
+		}
+		.deltd{
+			cursor:pointer;
+		}
+		.deltd:hover{
+			color:red;
+		}
+	</style>
+	<body>
+		<div style="margin:20px 100px;">
+			<div style="width:500px;float: left">
+				<h2>操作</h2>
+				<p>
+					<input type="button" name="" id="" value="创建/打开" onclick="createDb()"/>
+					<input type="button" name="" id="" value="刷新" onclick="reFreshDb()"/>
+				</p>
+				
+				<fieldset>
+		    		<legend>添加数据</legend>
+		    		姓名：<input type="text" id="nameInp"/><br /><br />
+					性别：<input type="text" id="sexInp"/><br /><br />
+					年龄：<input type="text" id="ageInp"/><br /><br />
+					<input type="button" value="添加数据" onclick="addtoDb()"/>
+		    	</fieldset>
+
+				 <fieldset>
+		    		<legend>更新信息</legend>
+		    		属性：
+		    			<input type="radio" name="depattr" id="uname" checked onchange="setenb(this)">
+		    				<label for="uname">name</label>
+		    			<input type="radio" name="depattr" id="uage" onchange="setenb(this)">
+		    				<label for="uage">age</label>
+		    			<input type="radio" name="depattr" id="usex" onchange="setenb(this)">
+		    				<label for="usex">sex</label>
+		    			<input type="hidden" id="sel" value="name">
+					<br><br>
+					姓名：<input type="text" id="uname_inp"/><br /><br />
+					年龄：<input type="text" id="uage_inp"/><br /><br />
+					性别：<input type="text" id="usex_inp"/><br /><br />
+					
+		    		<input type="button" value="更新" onclick="updateDb()"/>
+				</fieldset>
+				
+				<fieldset>
+		    		<legend>搜索</legend>
+		    		属性：
+		    			<input type="radio" name="searchattr" id="sname" checked>
+		    				<label for="sname">name</label>
+		    			<input type="radio" name="searchattr" id="sage">
+		    				<label for="sage">age</label>
+		    			<input type="radio" name="searchattr" id="ssex">
+		    				<label for="ssex">sex</label>
+					<br><br>
+					属性值：<input type="text" id="searchBox"/><br><br>
+					<button onclick="searchDb()">搜素</button>
+				</fieldset>
+			</div>
+			<div style="float: left">
+				<h2>结果</h2>
+				<table border="0" cellspacing="0" cellpadding="0">
+					<thead>
+					<tr><th>姓名</th><th>性别</th><th>年龄</th><th>操作</th></tr>
+					</thead>
+					<tbody id="tr">
+					
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		reFreshDb();
+		function createDb(){
+			openDb(myDb.name,myDb.version,myStore.name,myStore.keyPath,myStore.index);
+		}
+		function reFreshDb()
+		{
+			openDb(myDb.name,myDb.version,myStore.name,myStore.keyPath,myStore.index);
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function addtoDb(){
+			var parm = {
+				"name":document.getElementById("nameInp").value,
+				"age":document.getElementById("ageInp").value,
+				"sex":document.getElementById("sexInp").value
+			}
+			if((parm.name && parm.age && parm.sex) == '')
+			{
+				alert("请把信息填写完整！");
+				return ;
+			}
+			var pap = [] ;
+			pap.push(parm);
+			
+			addDataForDb(myDb.db,myStore.name,pap)
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function getAllDataFormDb(db,sName)
+		{
+			var tsaction = db.transaction(sName);
+			var store = tsaction.objectStore(sName);
+			var requestCur = store.openCursor();
+			document.getElementById("tr").innerHTML = '';
+			requestCur.onsuccess = function(e){
+				var cursor = e.target.result ;
+				
+				if(cursor){
+					var h =  '' ;
+					var curLine = cursor.value;
+					h += '<tr>' ;
+					h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + "</td><td class='deltd' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</td>" ;
+					h += '</tr>' ;
+					document.getElementById("tr").innerHTML += h ;
+					cursor.continue();
+				}
+			}	
+		}
+		function searchDataFormDb(db,sName,searchAttr,itemName)
+		{
+			var tsaction = db.transaction(sName,"readwrite");
+			var store = tsaction.objectStore(sName);
+			var requestCur = store.openCursor();
+			document.getElementById("tr").innerHTML = '';
+			requestCur.onsuccess = function(e){
+				var cursor = e.target.result ;
+				
+				if(cursor){
+					var curLine = cursor.value;
+					if(curLine[searchAttr] === itemName)
+					{
+						var h =  '' ;
+						var curLine = cursor.value;
+						h += '<tr>' ;
+						h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + "</td><td class='deltd' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</td>" ;
+						h += '</tr>' ;
+						document.getElementById("tr").innerHTML += h ;
+					}
+					cursor.continue();
+				}
+			}	
+		}
+		function searchDb(){
+			var nck = document.getElementById("sname").checked ;
+			var ack = document.getElementById("sage").checked ;
+			var sck = document.getElementById("ssex").checked ;
+	
+			var ck = 'name' ;
+			ck = nck?'name':(ack ? 'age': 'sex');
+			var val = document.getElementById("searchBox").value ;
+			if(val=='')
+			{
+				alert("搜索值不能为空！");
+				return ;
+			}
+			searchDataFormDb(myDb.db,myStore.name,ck,val);
+		}
+		function getAllfromDb(){
+			 getAllDataFormDb(myDb.db,myStore.name)
+		}
+		function deleteDataByName(item){
+			deleteData(myDb.db,myStore.name,"name",item);
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function updateDb(){
+			var nameVal = document.getElementById("uname_inp").value;
+			var ageVal = document.getElementById("uage_inp").value;
+			var sexVal = document.getElementById("usex_inp").value;
+			var sel = document.getElementById("sel").value ;
+			var ndata = '' ;
+			var uattr = '' ;
+
+			if(sel == "name")
+			{
+				ndata = {"age":ageVal,"sex":sexVal};
+				uattr = nameVal ;
+			}
+			else if(sel == 'age')
+			{
+				ndata = {"name":nameVal,"sex":sexVal};
+				uattr = ageVal ;
+			}
+			else{
+				ndata = {"name":nameVal,"age":ageVal};
+				uattr = sexVal ;
+			}
+			updateData(myDb.db,myStore.name,sel,uattr,ndata)
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function setenb(o)
+		{
+			var id = o.id;
+			var uni = document.getElementById("uname_inp");
+			var uai = document.getElementById("uage_inp");
+			var usi = document.getElementById("usex_inp");
+			uni.value = '';
+			uai.value = '';
+			usi.value = '';
+
+			// uni.disabled = false;
+			// uai.disabled = false;
+			// usi.disabled = false;
+			// document.getElementById(id+ "_inp").disabled = true ;
+			document.getElementById("sel").value = id.substring(1) ;
+		}
+	</script>
+</html>

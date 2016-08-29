@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<script>
+		window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB ||window.msIndexedDB ;
+	   	window.IDBCursor = window.IDBCursor || window.webkitIDBCursor || window.msIDBCursor ;
+	   	window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction ;
+	   	window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange ;
+   		
+   		//使用createindex 创建索引	
+   		//有三个参数    索引名称  索引字段名  索引字段值是否唯一
+   		var myDb = {
+   			name:"helloDb",
+   			version :2 ,
+   			db:null
+   		}
+   		function openDb(name,version)
+   		{
+   			var version = version || 1 ;
+   			var request = indexedDB.open(name,version) ;
+   			request.onsuccess = function(e){
+   				console.log("succeed");
+   				myDb.db = e.target.result;
+   			}
+   			request.onerror = function(e){
+   				
+   			}
+   			request.onupgradeneeded = function(e){
+   				var db = e.target.result ;
+   				if(!db.objectStoreNames.contains("students")){
+   					var store = db.createObjectStore("students",{keyPath:"id"});
+   					store.createIndex("nameIndex","name",{unique:true});
+   					store.createIndex("ageIndex","age",{unique:false});
+   				}
+   			}
+   		}
+   		var students = [
+   		{
+   			id:11,
+   			name:"aa",
+   			age:10
+   		},{
+   			id:12,
+   			name:"bb",
+   			age:11
+   		},{
+   			id:13,
+   			name:"cc",
+   			age:13
+   		},{
+   			id:14,
+   			name:"dd",
+   			age:20
+   		},{
+   			id:15,
+   			name:"mm",
+   			age:60
+   		}];
+   		function addData(db,sName)
+   		{
+   			var transaction = db.transaction(sName,"readwrite");
+   			var store = transaction.objectStore(sName);
+   			for(var i=0;i<students.length;i++){
+   				store.add(students[i]);
+   			}
+   		}
+   		openDb(myDb.name,myDb.version);
+   		setTimeout(function(){
+   			addData(myDb.db,"students")
+   		},1000);
+   		
+   		//使用索引获取数据
+   		//当获取的数据不是唯一值时，只能获取到第一条，所以需要配合游标使用
+   		function getData(db,sName,idxName,dname){
+   			var transaction = db.transaction(sName);
+   			var store = transaction.objectStore(sName);
+   			var index = store.index(idxName);
+   			index.get(dname).onsuccess = function(e){
+   				var s  = e.target.result ;
+   				alert(s.age + "/" + s.name + "/"  + s.id );
+   			}
+   		}
+   		function getDataByIndexName()
+   		{
+   			getData(myDb.db,"students","nameIndex","aa");
+   		}
+   		function getDataByIndexAge(){
+   			getData(myDb.db,"students","ageIndex",11);
+   			//注意最后的age是11，不能加引号
+   			
+   		}
+   		//使用游标获取数据
+	</script>
+	<body>
+		<input type="button" value="通过姓名获取" onclick="getDataByIndexName()"/>
+		<input type="button" value="通过年龄获取" onclick="getDataByIndexAge()"/>
+		
+	</body>
+</html>
