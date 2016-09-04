@@ -3,13 +3,13 @@
 	<head>
 		<meta charset="UTF-8">
 		<title></title>
-		<script src="dB.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/dB.js" type="text/javascript" charset="utf-8"></script>
 	</head>
 	<style type="text/css">
 		fieldset{
-			width:300px;
-			margin-top: 20px;
+			width:80%;
 		}
+		input[type='text']{width:70%;margin-left:10px;}
 		table,tr,td,th{
 			    border-collapse:collapse;
 		}
@@ -22,16 +22,23 @@
 			padding: 0;
 			margin:0;
 		}
+		tr>th:nth-child(4),tr>td:nth-child(4){
+			width:300px;
+		}
 		.deltd{
 			cursor:pointer;
 		}
 		.deltd:hover{
 			color:red;
 		}
+		.sbtn{
+			display: inline-block;margin:auto 10px;cursor: pointer;
+		}
+		.sbtn:hover{color:red;}
 	</style>
 	<body>
 		<div style="margin:20px 100px;">
-			<div style="width:500px;float: left">
+			<div style="width:45%;min-width:350px;float: left">
 				<h2>操作</h2>
 				<p>
 					<input type="button" name="" id="" value="创建/打开" onclick="createDb()"/>
@@ -40,28 +47,20 @@
 				
 				<fieldset>
 		    		<legend>添加数据</legend>
-		    		姓名：<input type="text" id="nameInp"/><br /><br />
-					性别：<input type="text" id="sexInp"/><br /><br />
-					年龄：<input type="text" id="ageInp"/><br /><br />
+		    		姓名：<input type="text" id="nameInp"/><br><br>
+					性别：<input type="text" id="sexInp"/><br><br>
+					年龄：<input type="text" id="ageInp"/><br><br>
 					<input type="button" value="添加数据" onclick="addtoDb()"/>
 		    	</fieldset>
 
 				 <fieldset>
 		    		<legend>更新信息</legend>
-		    		属性：
-		    			<input type="radio" name="depattr" id="uname" checked onchange="setenb(this)">
-		    				<label for="uname">name</label>
-		    			<input type="radio" name="depattr" id="uage" onchange="setenb(this)">
-		    				<label for="uage">age</label>
-		    			<input type="radio" name="depattr" id="usex" onchange="setenb(this)">
-		    				<label for="usex">sex</label>
-		    			<input type="hidden" id="sel" value="name">
-					<br><br>
+
 					姓名：<input type="text" id="uname_inp"/><br /><br />
 					年龄：<input type="text" id="uage_inp"/><br /><br />
 					性别：<input type="text" id="usex_inp"/><br /><br />
 					
-		    		<input type="button" value="更新" onclick="updateDb()"/>
+		    		<input type="button" value="保存" onclick="updateDb()"/>
 				</fieldset>
 				
 				<fieldset>
@@ -78,7 +77,7 @@
 					<button onclick="searchDb()">搜素</button>
 				</fieldset>
 			</div>
-			<div style="float: left">
+			<div style="width:45%;float: left">
 				<h2>结果</h2>
 				<table border="0" cellspacing="0" cellpadding="0">
 					<thead>
@@ -120,6 +119,8 @@
 			addDataForDb(myDb.db,myStore.name,pap)
 			setTimeout(function(){	
 				getAllfromDb();
+				clearInput(["nameInp","ageInp","usex_inp"]);
+
 			},500)
 		}
 		function getAllDataFormDb(db,sName)
@@ -135,8 +136,12 @@
 					var h =  '' ;
 					var curLine = cursor.value;
 					h += '<tr>' ;
-					h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + "</td><td class='deltd' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</td>" ;
-					h += '</tr>' ;
+
+					h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + '</td><td>' ;
+					h += "<span class='sbtn' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</span>";
+					h += "<span class='sbtn' onclick='changeData("+ JSON.stringify(curLine) +")'>修改</span>";
+					// h += "<span class='sbtn' onclick='updateDb(\""+ curLine["name"] +"\")'>保存</span>";
+					h += '</td></tr>' ;
 					document.getElementById("tr").innerHTML += h ;
 					cursor.continue();
 				}
@@ -158,8 +163,11 @@
 						var h =  '' ;
 						var curLine = cursor.value;
 						h += '<tr>' ;
-						h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + "</td><td class='deltd' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</td>" ;
-						h += '</tr>' ;
+						h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + '</td><td>' ;
+						h += "<span class='sbtn' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</span>";
+						h += "<span class='sbtn' onclick='changeData("+ JSON.stringify(curLine) +")'>修改</span>";
+						// h += "<span class='sbtn' onclick='updateDb(\""+ curLine["name"] +"\")'>保存</span>";
+						h += '</td></tr>' ;
 						document.getElementById("tr").innerHTML += h ;
 					}
 					cursor.continue();
@@ -188,50 +196,36 @@
 			deleteData(myDb.db,myStore.name,"name",item);
 			setTimeout(function(){	
 				getAllfromDb();
+				clearInput(["searchBox"]);
 			},500)
+		}
+		function changeData(obj){
+			document.getElementById("uname_inp").disabled = true ;
+			document.getElementById("uname_inp").value = obj.name ;
+			document.getElementById("uage_inp").value = obj.age ;
+			document.getElementById("usex_inp").value = obj.sex ;			
 		}
 		function updateDb(){
-			var nameVal = document.getElementById("uname_inp").value;
+			var attrval = document.getElementById("uname_inp").value
+			if(attrval == '')
+			{
+				alert("请选择要修改的记录");
+				return ;
+			}
 			var ageVal = document.getElementById("uage_inp").value;
 			var sexVal = document.getElementById("usex_inp").value;
-			var sel = document.getElementById("sel").value ;
-			var ndata = '' ;
-			var uattr = '' ;
 
-			if(sel == "name")
-			{
-				ndata = {"age":ageVal,"sex":sexVal};
-				uattr = nameVal ;
-			}
-			else if(sel == 'age')
-			{
-				ndata = {"name":nameVal,"sex":sexVal};
-				uattr = ageVal ;
-			}
-			else{
-				ndata = {"name":nameVal,"age":ageVal};
-				uattr = sexVal ;
-			}
-			updateData(myDb.db,myStore.name,sel,uattr,ndata)
+			var ndata  = {"age":ageVal,"sex":sexVal};
+			updateData(myDb.db,myStore.name,"name",attrval,ndata);
 			setTimeout(function(){	
 				getAllfromDb();
+				clearInput(["uname_inp","uage_inp","usex_inp"]);
 			},500)
 		}
-		function setenb(o)
-		{
-			var id = o.id;
-			var uni = document.getElementById("uname_inp");
-			var uai = document.getElementById("uage_inp");
-			var usi = document.getElementById("usex_inp");
-			uni.value = '';
-			uai.value = '';
-			usi.value = '';
-
-			// uni.disabled = false;
-			// uai.disabled = false;
-			// usi.disabled = false;
-			// document.getElementById(id+ "_inp").disabled = true ;
-			document.getElementById("sel").value = id.substring(1) ;
+		function clearInput(idArrs){
+			for(var i in idArrs){
+				document.getElementById(idArrs[i]).value = '' ;
+			}
 		}
 	</script>
 </html>
