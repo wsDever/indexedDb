@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<script src="dB-search.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<style type="text/css">
+		table,tr,td,th{
+			    border-collapse:collapse;
+		}
+		th,td{
+			width:120px;
+			height:30px;
+			line-height: 30px;
+			text-align: center;
+			border: 1px solid #ccc;
+			padding: 0;
+			margin:0;
+		}
+		.deltd{
+			cursor:pointer;
+		}
+		.deltd:hover{
+			color:red;
+		}
+	</style>
+	<body>
+		姓名：<input type="text" id="nameInp"/><br /><br />
+		性别：<input type="text" id="sexInp"/><br /><br />
+		年龄：<input type="text" id="ageInp"/><br /><br />
+		<input type="button" name="" id="" value="创建" onclick="createDb()"/>
+		<input type="button" value="添加数据" onclick="addtoDb()"/>
+		<input type="button" name="" id="" value="刷新" onclick="reFreshDb()"/>
+
+		<input type="button" value="更新" onclick="updateDb()"/>
+		<br /><br />
+		
+		输入：<input type="text" id="searchBox"/><button onclick="searchDb()">搜素</button>
+		<br /><br />
+		<table border="0" cellspacing="0" cellpadding="0">
+			<thead>
+			<tr><th>姓名</th><th>性别</th><th>年龄</th><th>操作</th></tr>
+			</thead>
+			<tbody id="tr">
+			
+			</tbody>
+		</table>
+	</body>
+	<script type="text/javascript">
+		reFreshDb();
+		function createDb(){
+			openDb(myDb.name,myDb.version,myStore.name,myStore.keyPath,myStore.index);
+		}
+		function reFreshDb()
+		{
+			openDb(myDb.name,myDb.version,myStore.name,myStore.keyPath,myStore.index);
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function addtoDb(){
+			var parm = {
+				"name":document.getElementById("nameInp").value,
+				"age":document.getElementById("ageInp").value,
+				"sex":document.getElementById("sexInp").value
+			}
+			
+			var pap = [] ;
+			pap.push(parm);
+			
+			addDataForDb(myDb.db,myStore.name,pap)
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function getAllDataFormDb(db,sName)
+		{
+			var tsaction = db.transaction(sName);
+			var store = tsaction.objectStore(sName);
+			var requestCur = store.openCursor();
+			document.getElementById("tr").innerHTML = '';
+			requestCur.onsuccess = function(e){
+				var cursor = e.target.result ;
+				
+				if(cursor){
+					var h =  '' ;
+					var curLine = cursor.value;
+					h += '<tr>' ;
+					h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + "</td><td class='deltd' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</td>" ;
+					h += '</tr>' ;
+					document.getElementById("tr").innerHTML += h ;
+					cursor.continue();
+				}
+			}	
+		}
+		function searchDataFormDb(db,sName,searchAttr,itemName)
+		{
+			var tsaction = db.transaction(sName,"readwrite");
+			var store = tsaction.objectStore(sName);
+			var requestCur = store.openCursor();
+			document.getElementById("tr").innerHTML = '';
+			requestCur.onsuccess = function(e){
+				var cursor = e.target.result ;
+				
+				if(cursor){
+					var curLine = cursor.value;
+					if(curLine[searchAttr] === itemName)
+					{
+						var h =  '' ;
+						var curLine = cursor.value;
+						h += '<tr>' ;
+						h += '<td>' + curLine["name"] + '</td><td>' + curLine["sex"] + '</td><td>' + curLine["age"] + "</td><td class='deltd' onclick='deleteDataByName(\""+ curLine["name"] +"\")'>删除</td>" ;
+						h += '</tr>' ;
+						document.getElementById("tr").innerHTML += h ;
+					}
+					cursor.continue();
+				}
+			}	
+		}
+		function searchDb(){
+			searchDataFormDb(myDb.db,myStore.name,"name",document.getElementById("searchBox").value);
+		}
+		function getAllfromDb(){
+			 getAllDataFormDb(myDb.db,myStore.name)
+		}
+		function deleteDataByName(item){
+			deleteData(myDb.db,myStore.name,"name",item);
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+		function updateDb(){
+			var ndata = {"age":document.getElementById("ageInp").value,"sex":document.getElementById("sexInp").value};
+			updateData(myDb.db,myStore.name,"name","wushang",ndata)
+			setTimeout(function(){	
+				getAllfromDb();
+			},500)
+		}
+	</script>
+</html>
